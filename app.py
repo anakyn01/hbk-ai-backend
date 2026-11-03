@@ -1,22 +1,48 @@
 import streamlit as st
-import json
 
-# 💡 리액트(웹사이트)와의 원활한 통신을 위한 CORS 헤더 및 OPTIONS 요청 처리
-st.html("""
-    <script>
-    // 브라우저 콘솔 및 네트워크 정책 우회 보조
-    </script>
-""")
+# 페이지 설정
+st.set_page_config(
+    page_title="HBK AI Intelligence",
+    page_icon="🤖",
+    layout="centered"
+)
 
-# 1. URL 쿼리 파라미터로 질문(?q=...)이 들어왔을 때 API처럼 JSON 응답 반환
-query_params = st.query_params
-if "q" in query_params:
-    user_query = query_params["q"].strip().lower()
+# 다크 글래스 룩에 어울리도록 Streamlit 기본 여백 및 배경 다듬기
+st.markdown("""
+    <style>
+    .stApp {
+        background-color: transparent;
+    }
+    #MainMenu, footer, header {visibility: hidden;}
+    </style>
+""", unsafe_allow_html=True)
+
+st.title("🤖 HBK 시니어 아키텍트 AI")
+st.caption("웹 제작, 기술 스택, 예상 아키텍처에 대해 무엇이든 물어보세요.")
+
+# 세션 스테이트로 대화 기록 유지
+if "messages" not in st.session_state:
+    st.session_state.messages = [
+        {"role": "assistant", "content": "안녕하세요! HBK 시니어 아키텍트 AI입니다. 어떤 웹 비즈니스를 구상하고 계신가요?"}
+    ]
+
+# 이전 대화 출력
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# 사용자 입력 받기 (Streamlit 하단 고정 채팅창)
+if prompt := st.chat_input("예) 쇼핑몰 제작 비용과 구조가 궁금해요"):
+    # 사용자 메시지 화면에 추가
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    user_query = prompt.strip().lower()
     
-    # 기본 답변 설정
+    # 💡 키워드별 풍부한 아키텍트 답변 데이터베이스
     answer = "HBK는 30년 경력의 시니어 아키텍트가 직접 비즈니스와 시스템을 진단합니다. 구체적인 요건을 남겨주시면 최적의 아키텍처를 제안해 드립니다."
     
-    # 키워드별 맞춤 답변 데이터베이스
     if any(k in user_query for k in ["비용", "견적", "얼마", "가격", "예산", "금액", "단가"]):
         answer = "프로젝트 예산은 요구하시는 기능 정의, 디자인 퀄리티(애플 스타일 글래스모피즘 등), 그리고 모듈 구성에 따라 상이합니다. 우측 상단의 '프로젝트 견적·상담'을 통해 상세 내용을 남겨주시면 정밀 진단해 드립니다."
     elif any(k in user_query for k in ["기술", "스택", "언어", "프레임워크", "리액트", "react", "파이썬", "python", "php", "자바", "spring"]):
@@ -36,18 +62,7 @@ if "q" in query_params:
     elif any(k in user_query for k in ["안녕", "반가워", "하이", "헬로", "반가워요"]):
         answer = "안녕하세요! HBK 시니어 아키텍트 AI입니다. 웹 제작, 기술 스택, 시스템 아키텍처에 대해 무엇이든 편하게 물어보세요."
 
-    # 💡 브라우저가 CORS 차단 없이 JSON을 읽을 수 있도록 명시적 헤더 처리
-    st.markdown(f"""
-    <script>
-        // API 응답 데이터 전달용
-        window.hbkResponse = {json.dumps({"answer": answer})};
-    </script>
-    """, unsafe_allow_html=True)
-    
-    st.json({"answer": answer})
-    st.stop()
-
-# 2. 브라우저로 직접 접속했을 때 보이는 기본 Streamlit 관리자 화면
-st.title("🤖 HBK AI 백엔드 서버")
-st.markdown("리액트 프론트엔드와 실시간 API 통신 중인 파이썬 서버입니다.")
-st.info("정상적으로 작동 중입니다. 사이트 내 AI 검색 모달을 통해 질문을 던져보세요!")
+    # AI 답변 출력 및 저장
+    with st.chat_message("assistant"):
+        st.markdown(answer)
+    st.session_state.messages.append({"role": "assistant", "content": answer})
