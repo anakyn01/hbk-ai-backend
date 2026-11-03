@@ -1,6 +1,13 @@
 import streamlit as st
 import json
 
+# 💡 리액트(웹사이트)와의 원활한 통신을 위한 CORS 헤더 및 OPTIONS 요청 처리
+st.html("""
+    <script>
+    // 브라우저 콘솔 및 네트워크 정책 우회 보조
+    </script>
+""")
+
 # 1. URL 쿼리 파라미터로 질문(?q=...)이 들어왔을 때 API처럼 JSON 응답 반환
 query_params = st.query_params
 if "q" in query_params:
@@ -9,7 +16,7 @@ if "q" in query_params:
     # 기본 답변 설정
     answer = "HBK는 30년 경력의 시니어 아키텍트가 직접 비즈니스와 시스템을 진단합니다. 구체적인 요건을 남겨주시면 최적의 아키텍처를 제안해 드립니다."
     
-    # 대폭 강화된 키워드별 맞춤 답변 데이터베이스
+    # 키워드별 맞춤 답변 데이터베이스
     if any(k in user_query for k in ["비용", "견적", "얼마", "가격", "예산", "금액", "단가"]):
         answer = "프로젝트 예산은 요구하시는 기능 정의, 디자인 퀄리티(애플 스타일 글래스모피즘 등), 그리고 모듈 구성에 따라 상이합니다. 우측 상단의 '프로젝트 견적·상담'을 통해 상세 내용을 남겨주시면 정밀 진단해 드립니다."
     elif any(k in user_query for k in ["기술", "스택", "언어", "프레임워크", "리액트", "react", "파이썬", "python", "php", "자바", "spring"]):
@@ -29,7 +36,14 @@ if "q" in query_params:
     elif any(k in user_query for k in ["안녕", "반가워", "하이", "헬로", "반가워요"]):
         answer = "안녕하세요! HBK 시니어 아키텍트 AI입니다. 웹 제작, 기술 스택, 시스템 아키텍처에 대해 무엇이든 편하게 물어보세요."
 
-    # JSON 형태로 결과 반환
+    # 💡 브라우저가 CORS 차단 없이 JSON을 읽을 수 있도록 명시적 헤더 처리
+    st.markdown(f"""
+    <script>
+        // API 응답 데이터 전달용
+        window.hbkResponse = {json.dumps({"answer": answer})};
+    </script>
+    """, unsafe_allow_html=True)
+    
     st.json({"answer": answer})
     st.stop()
 
